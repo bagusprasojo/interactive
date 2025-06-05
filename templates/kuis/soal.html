@@ -1,0 +1,54 @@
+{% load static %}
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Daftar ke Kuis</title>   
+        <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-database-compat.js"></script>
+        <script src="{% static 'kuis/firebase-client.js' %}"></script>
+
+    </head>
+    <body>
+        <!-- templates/kuis/soal.html -->
+        <h2>Selamat datang, {{ peserta.nama }}</h2>
+        <div id="soal"></div>
+
+        <script>
+            const kuisId = "{{ kuis_id }}";
+            listenSoal(kuisId, function(soalKe) {
+                fetch(`/api/kuis/${kuisId}/soal/${soalKe}/`)
+                    .then(res => res.json())
+                    .then(data => {
+                        document.getElementById("soal").innerHTML = `
+                            <h3>${data.pertanyaan}</h3>
+                            a. <button onclick="submitJawaban('A')">${data.jawaban_a}</button><br><br>
+                            b. <button onclick="submitJawaban('B')">${data.jawaban_b}</button><br><br>
+                            c. <button onclick="submitJawaban('C')">${data.jawaban_c}</button><br><br>
+                            d. <button onclick="submitJawaban('D')">${data.jawaban_d}</button><br>
+                        `;
+                    });
+            });
+
+            function submitJawaban(jawaban) {
+                fetch(`/api/submit_jawaban/`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        jawaban: jawaban,
+                        kuis_id: kuisId,
+                        peserta_id: "{{ peserta.id }}"
+                    })
+
+                }).then(res => res.json()).then(data => {
+                    alert(data.message);
+                });
+            }
+        </script>
+
+
+    </body>
+</html>
+

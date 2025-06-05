@@ -1,0 +1,28 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Daftar ke Kuis</title>   
+        
+    </head>
+    <body>
+        <!-- templates/kuis/admin_kontrol.html -->
+        <h2>Kontrol Kuis: {{ kuis.nama_kuis }}</h2>
+
+        <p>Status: <span id="status_kuis">{{status}}</span></p>
+        <p>Soal Saat Ini:<br> <span id="soal_aktif">{{soal_aktif}} . {{redaksi_soal}}</span></p>
+
+        <form method="post">
+            {% csrf_token %}
+            <button name="aksi" value="mulai" type="submit">Mulai</button>
+            <button name="aksi" value="kembali" type="submit">Kembali</button>
+            <button name="aksi" value="lanjut" type="submit">Lanjutkan</button>
+            <button name="aksi" value="selesai" type="submit">Selesai</button>
+        </form>
+
+       
+
+    </body>
+</html>
+

@@ -1,0 +1,55 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Leaderboard</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-database-compat.js"></script>
+    <script src="{% static 'kuis/firebase-client.js' %}"></script>
+</head>
+<body>
+    <h2>Leaderboard</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Peringkat</th>
+                <th>Nama Peserta</th>
+                <th>Skor</th>
+            </tr>
+        </thead>
+        <tbody id="leaderboard-body">
+            <!-- Baris-baris akan diisi via JS -->
+        </tbody>
+    </table>
+
+    <script>
+        const kuisId = "{{ kuis.id }}";
+
+        listenLeaderboard(kuisId, function(data) {
+            console.log("Data leaderboard :", data);
+
+            if (Array.isArray(data)) {
+                data = data[1];  // ambil object leaderboard di index 1
+                console.log("Data leaderboard ter-update:", data);
+            }
+            const leaderboard = Object.entries(data)
+                .map(([peserta_id, info]) => ({
+                    nama: info.nama,
+                    skor: info.skor
+                }))
+                .sort((a, b) => b.skor - a.skor);
+
+            const tbody = document.getElementById("leaderboard-body");
+            tbody.innerHTML = "";
+            leaderboard.forEach((item, index) => {
+                const row = `<tr>
+                    <td>${index + 1}</td>
+                    <td>${item.nama}</td>
+                    <td>${item.skor}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+        });
+    </script>
+</body>
+</html>

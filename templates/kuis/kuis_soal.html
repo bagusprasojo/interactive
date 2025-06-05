@@ -1,0 +1,102 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Soal Kuis</title>
+    <!-- Gunakan Firebase versi compat agar bisa pakai global "firebase" -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-database-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAXcHVUrzqNTIilF-Xnncik_uQ_KVbngLY",
+            authDomain: "quickstart-1583738730654.firebaseapp.com",
+            databaseURL: "https://quickstart-1583738730654-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "quickstart-1583738730654",
+            storageBucket: "quickstart-1583738730654.appspot.com",
+            messagingSenderId: "314267506700",
+            appId: "1:314267506700:web:079c361a35ea5d9e523629"
+        };
+
+        // Inisialisasi Firebase
+        firebase.initializeApp(firebaseConfig);
+    </script>
+
+</head>
+<body>
+
+    <h2>{{ kuis.nama_kuis }}</h2>
+    <h3>Peserta: {{ peserta.nama }}</h3>
+
+    <div id="soal_area">
+        <p><strong>Soal:</strong> <span id="pertanyaan">Menunggu soal...</span></p>
+        <form id="form_jawaban" method="post">
+            {% csrf_token %}
+            <div id="pilihan_jawaban"></div>
+            <button type="submit">Kirim Jawaban</button>
+        </form>
+    </div>
+
+    <script>
+        const db = firebase.database();
+        const kuisId = "{{ kuis.id }}";
+        const pesertaId = "{{ peserta.id }}";
+
+        let soalData = [];
+
+        // Ambil semua soal (1x via endpoint Django)
+        fetch(`/api/soal_list/${kuisId}/`)
+            .then(res => res.json())
+            .then(data => {
+                soalData = data.soal_list;
+            });
+
+        // Dengarkan perubahan soal aktif
+        db.ref(`kuis/${kuisId}`).on('value', (snapshot) => {
+            const status = snapshot.val();
+            if (status && status.soal_aktif >= 0 && status.status === 'lanjut') {
+                const soal = soalData[status.soal_aktif];
+                if (soal) {
+                    document.getElementById('pertanyaan').innerText = soal.pertanyaan;
+
+                    const pilihanDiv = document.getElementById('pilihan_jawaban');
+                    pilihanDiv.innerHTML = '';
+
+                    ['A', 'B', 'C', 'D'].forEach(kode => {
+                        const jawaban = soal['jawaban_' + kode.toLowerCase()];
+                        const radio = `<label><input type="radio" name="jawaban" value="${kode}"> ${jawaban}</label><br>`;
+                        pilihanDiv.innerHTML += radio;
+                    });
+                }
+            } else {
+                document.getElementById('pertanyaan').innerText = 'Menunggu soal dimulai...';
+                document.getElementById('pilihan_jawaban').innerHTML = '';
+            }
+        });
+
+        // Tangani submit jawaban
+        document.getElementById('form_jawaban').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const jawaban = document.querySelector('input[name="jawaban"]:checked');
+            if (jawaban) {
+                fetch(`/api/kirim_jawaban/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        kuis_id: kuisId,
+                        peserta_id: pesertaId,
+                        jawaban: jawaban.value
+                    })
+                }).then(res => res.json())
+                  .then(data => alert(data.message));
+            } else {
+                alert("Pilih jawaban terlebih dahulu.");
+            }
+        });
+    </script>
+
+</body>
+</html>
