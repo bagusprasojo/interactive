@@ -118,9 +118,8 @@ def admin_kontrol(request, kuis_id):
 
     return render(request, 'kuis/admin_kontrol.html', context)
 
-def main_kuis(request):
-    soals = Soal.objects.all()
-    return render(request, 'kuis/main.html', {'soals': soals})
+def home(request):
+    return render(request, 'kuis/home.html')
 
 def daftar_kuis(request, kuis_id):
     kuis = get_object_or_404(Kuis, id=kuis_id)
